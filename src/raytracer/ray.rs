@@ -1,6 +1,6 @@
+#![allow(dead_code)]
 use crate::raytracer::vec3::Vec3;
-
-struct Ray {
+pub struct Ray {
     pub origin: Vec3,
     pub direction: Vec3
 }
