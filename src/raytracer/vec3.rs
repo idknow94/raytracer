@@ -1,5 +1,5 @@
+#![allow(dead_code)]
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign };
-
 
 #[derive(Clone, Copy)]
 pub struct Vec3 {

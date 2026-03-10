@@ -1,5 +1,5 @@
 use crate::raytracer::vec3::Vec3;
-pub fn write_color(pixel_color: &Vec3) -> String {
+pub fn write_color(pixel_color: Vec3) -> String {
     let r = pixel_color.x;
     let g = pixel_color.y;
     let b = pixel_color.z;
