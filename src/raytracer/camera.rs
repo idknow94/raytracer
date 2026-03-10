@@ -5,6 +5,7 @@ use crate::raytracer::ray::*;
 use std::fs::File;
 use std::io::{Write, BufWriter};
 
+
 pub struct Camera {
     camera_center: Vec3,
     viewport_u: Vec3,

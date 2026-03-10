@@ -14,3 +14,7 @@ impl Ray {
         self.origin + self.direction*t
     }
 }
+
+pub trait Hit {
+    fn hit(&self, ray: &Ray) -> bool;
+}
