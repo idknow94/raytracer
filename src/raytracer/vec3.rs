@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign };
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Neg };
 
 #[derive(Clone, Copy)]
 pub struct Vec3 {
@@ -9,8 +9,8 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(r: f64, g: f64, b: f64) -> Self {
-        Vec3 {x:r, y:g, z:b}
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Vec3 {x, y, z}
     }
     pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
@@ -28,7 +28,7 @@ impl Vec3 {
             z: self.x * other.y - self.y * other.x,
         }
     }
-    pub fn normalize(&self) -> Vec3 {
+    pub fn unit_vector(&self) -> Vec3 {
         let len = self.length();
         *self / len
     }
@@ -91,6 +91,13 @@ impl DivAssign<f64> for Vec3 {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        self*-1.0
     }
 }
 

@@ -1,10 +1,11 @@
 #![allow(dead_code)]
+use crate::raytracer::hittables::{Hittable, Hittables};
 use crate::raytracer::vec3::Vec3;
-use crate::raytracer::util::write_color;
+use crate::raytracer::util::*;
 use crate::raytracer::ray::*;
+use core::f64;
 use std::fs::File;
 use std::io::{Write, BufWriter};
-
 
 pub struct Camera {
     camera_center: Vec3,
@@ -29,7 +30,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, path: &str, width: u32, height: u32) -> std::io::Result<()> {
+    pub fn render(&self, path: &str, width: u32, height: u32, hittables: Hittables) -> std::io::Result<()> {
         let f= File::create(path)?;
         let mut writer = BufWriter::new(f);
 
@@ -41,17 +42,17 @@ impl Camera {
         let pixel_delta_v=self.viewport_v/f64::from(height);
         let pixel_00_location = self.viewport_upper_left + (pixel_delta_u + pixel_delta_v)/2.0;
 
-        let height_inv = 1f64/height as f64;
-        let width_inv = 1f64/width as f64;
-
         for i in 0..(height) {
             for j in 0..(width) {
-                let pixel_center = pixel_00_location + (pixel_delta_v*f64::from(i)) + (pixel_delta_u*f64::from(i));
-                let ray_direction = pixel_center-self.camera_center;
-                #[allow(unused)]
+                let pixel_center = pixel_00_location + (pixel_delta_v*f64::from(i)) + (pixel_delta_u*f64::from(j));
+                let ray_direction = pixel_center - self.camera_center;
                 let ray = Ray::new(self.camera_center, ray_direction);
-
-                writeln!(writer, "{}", write_color(Vec3::new(i as f64 * height_inv, 0.0, j as f64 * width_inv)))?;
+                let hit_record = hittables.hit(&ray, Interval::new(0.0, f64::INFINITY));
+                let mut color = Color::new(0.2,0.1,0.5);
+                if let Some(record) = hit_record {
+                    color = normal_color(&record);
+                }
+                writeln!(writer, "{}", write_color(color))?;
             }
         }
         Ok(())
