@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Neg };
 
+use crate::raytracer::util;
+
 #[derive(Clone, Copy)]
 pub struct Vec3 {
     pub x: f64,
@@ -9,6 +11,8 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
+    pub const UP: Vec3 = Vec3 { x: 0.0, y: 1.0, z: 0.0 };
+    pub const ZERO: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Vec3 {x, y, z}
     }
@@ -31,6 +35,30 @@ impl Vec3 {
     pub fn unit_vector(&self) -> Vec3 {
         let len = self.length();
         *self / len
+    }
+    pub fn random(min: f64, max: f64) -> Vec3 {
+        Vec3 {
+            x: util::random_f64(min, max),
+            y: util::random_f64(min, max),
+            z: util::random_f64(min, max),
+        }
+    }
+    pub fn random_unit_vector() -> Vec3 {
+        loop {
+            let p = Vec3::random(-1.0, 1.0);
+            let len_squared = p.length_squared();
+            if len_squared > 1e-160 && len_squared <= 1.0 {
+                return p / len_squared.sqrt();
+            }
+        }
+    }
+    pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
+        let random_vector = Self::random_unit_vector();
+        if random_vector.dot(normal) > 0.0 {
+            random_vector
+        } else {
+            -random_vector
+        }
     }
 }
 

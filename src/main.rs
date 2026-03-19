@@ -4,9 +4,18 @@ mod raytracer;
 
 fn main() -> Result<(), std::io::Error>{
     let mut world = hittables::Hittables::new();
-    world.add(Sphere::new(Vec3::new(0.0,-10.0,-20.0), 5.0).share());
-    world.add(Sphere::new(Vec3::new(10.0,10.0,-30.0), 5.0).share());
-    world.add(Sphere::new(Vec3::new(-10.0,10.0,-30.0), 5.0).share());
-    let cam = Camera::new(16f64/9f64, 2f64, 1f64);
-    cam.render("out/img.ppm", 1600, 900, world)
+    world.add(Sphere::new(Vec3::new(0.0,0.0,-20.0), 5.0).share());
+    world.add(Sphere::new(Vec3::new(0.0,-105.0,-20.0), 100.0).share());
+    let background = Vec3::new(0.5, 0.7, 1.0);
+    let cam = Camera::new(
+        Vec3::ZERO,
+        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::UP,
+        90.0,
+        16.0 / 9.0,
+        50,
+        background,
+    );
+
+    cam.render("out/img.ppm", 600, world)
 }

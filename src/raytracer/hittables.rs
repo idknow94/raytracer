@@ -104,4 +104,3 @@ impl Hittable for Sphere {
     }
     
 }
-

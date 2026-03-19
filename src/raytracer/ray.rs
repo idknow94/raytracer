@@ -38,6 +38,9 @@ impl Interval {
     pub fn size(&self) -> f64 {
         return self.max - self.min
     }
+    pub fn clamp(&self, f: f64) -> f64 {
+        f64::clamp(f, self.min, self.max)
+    }
 }
 
 impl Default for Interval {

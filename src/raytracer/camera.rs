@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use crate::raytracer::hittables::{Hittable, Hittables};
+use crate::raytracer::hittables::Hittable;
+use crate::raytracer::hittables::Hittables;
 use crate::raytracer::vec3::Vec3;
 use crate::raytracer::util::*;
 use crate::raytracer::ray::*;
@@ -8,61 +9,105 @@ use std::fs::File;
 use std::io::{Write, BufWriter};
 
 pub struct Camera {
-    camera_center: Vec3,
-    viewport_u: Vec3,
-    viewport_v: Vec3,
-    viewport_upper_left: Vec3,
+    origin: Vec3,
+    lower_left_corner: Vec3,
+    horizontal: Vec3,
+    vertical: Vec3,
+    aspect_ratio: f64,
+    samples_per_pixel: u32,
+    background: Color,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, viewport_height: f64, focal_length: f64) -> Self {
-        let camera_center = Vec3::new(0.0, 0.0, 0.0);
-        let viewport_width = viewport_height * aspect_ratio;
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
-        let viewport_upper_left = camera_center - viewport_u/2.0 - viewport_v/2.0 - Vec3::new(0.0, 0.0, focal_length);
+    pub fn new(
+        lookfrom: Vec3,
+        lookat: Vec3,
+        vup: Vec3,
+        vfov_degrees: f64,
+        aspect_ratio: f64,
+        samples_per_pixel: u32,
+        background: Color,
+    ) -> Self {
+        let h = (vfov_degrees.to_radians() / 2.0).tan();
+        let viewport_height = 2.0 * h;
+        let viewport_width = aspect_ratio * viewport_height;
+
+        let w = (lookfrom - lookat).unit_vector();
+        let u = vup.cross(w).unit_vector();
+        let v = w.cross(u);
+
+        let origin = lookfrom;
+        let horizontal = u * viewport_width;
+        let vertical = v * viewport_height;
+        let lower_left_corner =
+            origin - horizontal / 2.0 - vertical / 2.0 - w;
 
         Self {
-            camera_center,
-            viewport_u,
-            viewport_v,
-            viewport_upper_left: viewport_upper_left,
+            origin,
+            lower_left_corner,
+            horizontal,
+            vertical,
+            aspect_ratio,
+            samples_per_pixel,
+            background,
         }
     }
 
-    pub fn render(&self, path: &str, width: u32, height: u32, hittables: Hittables) -> std::io::Result<()> {
-        let f= File::create(path)?;
-        let mut writer = BufWriter::new(f);
+    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+        Ray::new(
+            self.origin,
+            self.lower_left_corner + self.horizontal * u + self.vertical * v - self.origin,
+        )
+    }
+
+    pub fn render(&self, path: &str, width: u32, hittables: Hittables) -> std::io::Result<()> {
+        let height = (width as f64 / self.aspect_ratio).round() as u32;
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
 
         writeln!(writer, "P3")?;
         writeln!(writer, "{} {}", width, height)?;
         writeln!(writer, "255")?;
 
-        let pixel_delta_u=self.viewport_u/f64::from(width);
-        let pixel_delta_v=self.viewport_v/f64::from(height);
-        let pixel_00_location = self.viewport_upper_left + (pixel_delta_u + pixel_delta_v)/2.0;
+        for i in (0..height).rev() {
+            for j in 0..width {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-        for i in 0..(height) {
-            for j in 0..(width) {
-                let pixel_center = pixel_00_location + (pixel_delta_v*f64::from(i)) + (pixel_delta_u*f64::from(j));
-                let ray_direction = pixel_center - self.camera_center;
-                let ray = Ray::new(self.camera_center, ray_direction);
-                let hit_record = hittables.hit(&ray, Interval::new(0.0, f64::INFINITY));
-                let mut color = Color::new(0.2,0.1,0.5);
-                if let Some(record) = hit_record {
-                    color = normal_color(&record);
+                for _ in 0..self.samples_per_pixel {
+                    let u = (j as f64 + random_f64(0.0, 1.0)) / (width as f64 - 1.0);
+                    let v = (i as f64 + random_f64(0.0, 1.0)) / (height as f64 - 1.0);
+                    let ray = self.get_ray(u, v);
+                    pixel_color += self.ray_color(&ray, &hittables, 100);
                 }
-                writeln!(writer, "{}", write_color(color))?;
+
+                pixel_color /= self.samples_per_pixel as f64;
+                // gamma correction for gamma=2.0
+                pixel_color = Color::new(
+                    pixel_color.x.sqrt(),
+                    pixel_color.y.sqrt(),
+                    pixel_color.z.sqrt(),
+                );
+
+                writeln!(writer, "{}", write_color(pixel_color))?;
             }
         }
+
         Ok(())
     }
+    fn ray_color(&self, ray: &Ray, hittables: &Hittables, depth: u32) -> Color {
+        if depth == 0 {
+            return Vec3::new(0.0, 0.0, 0.0);
+        }
 
-    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
-        Ray::new(
-            self.camera_center,
-            self.viewport_upper_left + self.viewport_u * u + self.viewport_v * v - self.camera_center,
-        )
+        if let Some(record) = hittables.hit(ray, Interval::new(0.001, f64::INFINITY)) {
+            let dir = record.normal + Vec3::random_unit_vector();
+            return self.ray_color(&Ray::new(record.point, dir), hittables, depth - 1) * 0.5;
+        }
+
+        let unit_direction = ray.direction.unit_vector();
+        let t = 0.5 * (unit_direction.y + 1.0);
+        Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + self.background * t
     }
 }
+
 
