@@ -101,12 +101,12 @@ impl Camera {
 
         if let Some(record) = hittables.hit(ray, Interval::new(0.001, f64::INFINITY)) {
             let dir = record.normal + Vec3::random_unit_vector();
-            return self.ray_color(&Ray::new(record.point, dir), hittables, depth - 1) * 0.5;
+            return self.ray_color(&Ray::new(record.point, dir), hittables, depth - 1) * 0.7;
         }
 
         let unit_direction = ray.direction.unit_vector();
         let t = 0.5 * (unit_direction.y + 1.0);
-        Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + self.background * t
+        Color::new(1.0, 1.0, 1.0) * (1.0 - t) + self.background * t
     }
 }
 

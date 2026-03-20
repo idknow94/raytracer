@@ -6,7 +6,7 @@ fn main() -> Result<(), std::io::Error>{
     let mut world = hittables::Hittables::new();
     world.add(Sphere::new(Vec3::new(0.0,0.0,-20.0), 5.0).share());
     world.add(Sphere::new(Vec3::new(0.0,-105.0,-20.0), 100.0).share());
-    let background = Vec3::new(0.5, 0.7, 1.0);
+    let background = Vec3::new(0.1, 0.3, 1.0);
     let cam = Camera::new(
         Vec3::ZERO,
         Vec3::new(0.0, 0.0, -1.0),
@@ -17,5 +17,5 @@ fn main() -> Result<(), std::io::Error>{
         background,
     );
 
-    cam.render("out/img.ppm", 600, world)
+    cam.render("out/img.ppm", 1000, world)
 }
