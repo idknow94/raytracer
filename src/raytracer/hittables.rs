@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 
+use crate::raytracer::material::Material;
 use crate::raytracer::vec3::Vec3;
 use crate::raytracer::ray::{Ray, Interval};
 
@@ -47,23 +48,25 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub is_face_front: bool,
+    pub material: Material,
 }
 
 impl HitRecord {
-    pub fn new(point: Vec3, normal: Vec3, t: f64, front_face: bool) -> Self {
-        Self { point, normal, t, is_face_front: front_face }
+    pub fn new(point: Vec3, normal: Vec3, t: f64, front_face: bool, material: Material) -> Self {
+        Self { point, normal, t, is_face_front: front_face, material: material}
     }
 }
 
 #[derive(Clone)]
 pub struct Sphere {
     pub center: Vec3,
-    pub radius: f64
+    pub radius: f64,
+    pub material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Sphere {
-        Self { center, radius }
+    pub fn new(center: Vec3, radius: f64, material: Material) -> Sphere {
+        Self { center, radius, material }
     }
     pub fn share(&self) -> Arc<Self> {
         Arc::new(self.clone())
@@ -100,7 +103,7 @@ impl Hittable for Sphere {
             normal = -normal;
         }
 
-        Some(HitRecord::new(point, normal, t, is_face_front))
+        Some(HitRecord::new(point, normal, t, is_face_front, self.material))
     }
     
 }

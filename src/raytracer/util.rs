@@ -9,6 +9,7 @@ use crate::raytracer::{
 };
 
 pub type Color = Vec3;
+
 pub fn write_color(pixel_color: Vec3) -> String {
     let r = linear_to_gamma(pixel_color.x);
     let g = linear_to_gamma(pixel_color.y);

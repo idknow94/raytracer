@@ -13,6 +13,18 @@ pub struct Vec3 {
 impl Vec3 {
     pub const UP: Vec3 = Vec3 { x: 0.0, y: 1.0, z: 0.0 };
     pub const ZERO: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+    
+    // Common colors
+    pub const BLACK: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 0.0 };
+    pub const WHITE: Vec3 = Vec3 { x: 1.0, y: 1.0, z: 1.0 };
+    pub const RED: Vec3 = Vec3 { x: 1.0, y: 0.0, z: 0.0 };
+    pub const GREEN: Vec3 = Vec3 { x: 0.0, y: 1.0, z: 0.0 };
+    pub const BLUE: Vec3 = Vec3 { x: 0.0, y: 0.0, z: 1.0 };
+    pub const YELLOW: Vec3 = Vec3 { x: 1.0, y: 1.0, z: 0.0 };
+    pub const CYAN: Vec3 = Vec3 { x: 0.0, y: 1.0, z: 1.0 };
+    pub const MAGENTA: Vec3 = Vec3 { x: 1.0, y: 0.0, z: 1.0 };
+    pub const GRAY: Vec3 = Vec3 { x: 0.5, y: 0.5, z: 0.5 };
+    
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Vec3 {x, y, z}
     }
@@ -60,6 +72,14 @@ impl Vec3 {
             -random_vector
         }
     }
+
+    pub fn reflect(&self, normal: Vec3) -> Vec3 {
+        *self - normal * 2.0 * self.dot(normal)
+    }
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
+    }
 }
 
 impl Add for Vec3 {
@@ -96,6 +116,13 @@ impl Mul<f64> for Vec3 {
     type Output = Vec3;
     fn mul(self, rhs: f64) -> Vec3 {
         Vec3 {x: self.x*rhs, y: self.y*rhs, z: self.z*rhs}
+    }
+}
+
+impl Mul<Vec3> for Vec3 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3 {x: self.x*rhs.x, y: self.y*rhs.y, z: self.z*rhs.z}
     }
 }
 
